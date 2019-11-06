@@ -75,6 +75,11 @@ class Student:
             self._completed_courses.append(course)
 
     def add_remaining(self, major):
+        """
+            add remaining required courses and remaining elective courses
+        :param major:
+        :return:
+        """
         self._required = list_difference(major.required, self._completed_courses)
         self._electives = None if set(major.electives) & set(self._completed_courses) else major.electives
 
