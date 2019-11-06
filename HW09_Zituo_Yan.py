@@ -71,7 +71,7 @@ class Student:
         :return:
         """
         self._course_grade[course] = grade
-        if grade != "F":
+        if grade != "F" and grade != '':
             self._completed_courses.append(course)
 
     def add_remaining(self, major):
@@ -222,7 +222,7 @@ class Repository:
                 student = self._student[records[0]]
             except KeyError:
                 raise KeyError(f"{records[0]} are not in student table!")
-            if records[2] not in ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'F']:
+            if records[2] not in ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'F', '']:
                 raise ValueError("Grades invalid, should be 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C' and 'F'.")
             else:
                 student.add_course_grade(records[1], records[2])
