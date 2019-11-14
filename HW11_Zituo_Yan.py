@@ -4,6 +4,7 @@
     date: 10/30/19
 """
 import os
+import sqlite3
 from collections import defaultdict
 from prettytable import PrettyTable
 
@@ -80,7 +81,8 @@ class Student:
         :param major:
         :return:
         """
-        self._required = list_difference(major.required, self._completed_courses)
+        # self._required = list_difference(major.required, self._completed_courses)
+        self._required = [i for i in set(major.required) if i not in set(self._completed_courses)]
         self._electives = None if set(major.electives) & set(self._completed_courses) else major.electives
 
     def get_summary(self):
@@ -168,13 +170,6 @@ class Repository:
                         repository
     """
 
-    student_table = PrettyTable()
-    student_table.field_names = ['CWID', 'Name', 'Completed Courses', 'Remaining Required', 'Remaining Elective']
-    instructor_table = PrettyTable()
-    instructor_table.field_names = ['CWID', 'Name', 'Dept', 'Courses', 'Students']
-    major_table = PrettyTable()
-    major_table.field_names = ['Major', 'Required', 'Electives']
-
     def __init__(self, dir_path, default_print=True):
         """
             initiate repository
@@ -194,18 +189,19 @@ class Repository:
             read and save data from students.txt
         :return:
         """
-        for students in file_reading_gen(self._student_directory, 3, ';', True):
+        for students in file_reading_gen(self._student_directory, 3, '\t', True):
             for values in students:
                 if len(values) == 0:
                     raise ValueError("Students table has empty value!")
             self._student[students[0]] = Student(*students)
+            self._student[students[0]].add_remaining(self._major[self._student[students[0]].major])
 
     def storage_instructor(self):
         """
             read and save data from instructors.txt
         :return:
         """
-        for instructors in file_reading_gen(self._instructor_directory, 3, '|', True):
+        for instructors in file_reading_gen(self._instructor_directory, 3, '\t', True):
             for values in instructors:
                 if len(values) == 0:
                     raise ValueError("Instructors table has empty value!")
@@ -217,7 +213,7 @@ class Repository:
             read and process grade
         :return:
         """
-        for records in file_reading_gen(self._grade_directory, 4, '|', True):
+        for records in file_reading_gen(self._grade_directory, 4, '\t', True):
             try:
                 student = self._student[records[0]]
             except KeyError:
@@ -251,16 +247,22 @@ class Repository:
             form and print prettytable
         :return:
         """
+        student_table = PrettyTable()
+        student_table.field_names = ['CWID', 'Name', 'Completed Courses', 'Remaining Required', 'Remaining Elective']
+        instructor_table = PrettyTable()
+        instructor_table.field_names = ['CWID', 'Name', 'Dept', 'Courses', 'Students']
+        major_table = PrettyTable()
+        major_table.field_names = ['Major', 'Required', 'Electives']
         for students in self._student.values():
-            self.student_table.add_row(students.get_summary())
+            student_table.add_row(students.get_summary())
         for instructors in self._instructor.values():
             for record in instructors.get_summary():
-                self.instructor_table.add_row(record)
+                instructor_table.add_row(record)
         for major in self._major.values():
-            self.major_table.add_row(major.get_summary())
-        print(self.student_table)
-        print(self.instructor_table)
-        print(self.major_table)
+            major_table.add_row(major.get_summary())
+        print(student_table)
+        print(instructor_table)
+        print(major_table)
 
     def repository(self, default_print):
         """
@@ -280,9 +282,21 @@ class Repository:
             if default_print:
                 self.summary()
 
+    @staticmethod
+    def instructor_table_db(db_path):
+        db = sqlite3.connect(db_path)
+        query = "select i.CWID, i.Name, i.Dept, g.Course, count(*) as cnt from instructors i join grades g " \
+                "on i.CWID = g.InstructorCWID group by i.CWID, g.Course"
+        instructor_table = PrettyTable()
+        instructor_table.field_names = ['CWID', 'Name', 'Dept', 'Courses', 'Students']
+        for row in db.execute(query):
+            instructor_table.add_row(list(row))
+        print(instructor_table)
+
 
 def main():
-    Repository('./stevens')
+    a = Repository('./stevens')
+    a.instructor_table_db("/Applications/DataGrip.app/Contents/bin/810_startup.db")
     # Repository('./test')
 
 

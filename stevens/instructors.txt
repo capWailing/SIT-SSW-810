@@ -1,7 +1,4 @@
-CWID|Instructor|Dept
-98765|Einstein, A|SFEN
-98764|Feynman, R|SFEN
-98763|Newton, I|SFEN
-98762|Hawking, S|SYEN
-98761|Edison, A|SYEN
-98760|Darwin, C|SYEN
+CWID	Name	Dept
+98764	Cohen, R	SFEN
+98763	Rowland, J	SFEN
+98762	Hawking, S	CS
