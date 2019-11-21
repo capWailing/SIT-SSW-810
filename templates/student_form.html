@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block body %}
+
+Please choose a student<br><br>
+<form action="show_student" method="post">
+    <select name="cwid" id="">
+        {% for student in students %}
+            <option value="{{ student.cwid }}">{{ student.name }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="submit">
+</form>
+<p><a href="/main">main page</a></p>
+{% endblock %}
